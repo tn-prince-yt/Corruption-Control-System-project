@@ -1,16 +1,23 @@
 <?php
-// Logout
-include '../includes/config.php';
-include '../includes/functions.php';
+/**
+ * Logout Page
+ * Handles user logout
+ */
 
-// Audit log
-if (isset($_SESSION['user_id'])) {
-    auditLog('LOGOUT', 'users', $_SESSION['user_id'], 'User logged out');
+require_once '../config/database.php';
+require_once '../config/config.php';
+require_once '../config/session.php';
+require_once '../config/helpers.php';
+
+// Log the logout action
+if (isLoggedIn()) {
+    logActivity(getUserId(), null, 'LOGOUT', 'User logged out');
 }
 
 // Destroy session
 session_destroy();
 
-// Redirect to home
-header("Location: " . SITE_URL . 'index.php');
+// Redirect to login page
+header("Location: " . APP_URL . "/index.php?message=You%20have%20been%20logged%20out");
 exit();
+?>

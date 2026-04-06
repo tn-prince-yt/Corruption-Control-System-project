@@ -1,7 +1,7 @@
 <?php
 /**
- * Citizen Dashboard
- * Main dashboard for citizens
+ * My Complaints Page
+ * Displays all complaints submitted by the citizen
  */
 
 require_once '../config/database.php';
@@ -13,34 +13,34 @@ require_once '../config/helpers.php';
 requireRole('citizen');
 
 $user_id = getUserId();
-
-// Get user data
 $user = getCurrentUser();
 
-// Get statistics
-$stmt = $conn->prepare("SELECT 
-    COUNT(*) as total_complaints,
-    SUM(CASE WHEN status = 'submitted' THEN 1 ELSE 0 END) as submitted,
-    SUM(CASE WHEN status = 'under_review' THEN 1 ELSE 0 END) as under_review,
-    SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END) as approved,
-    SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) as rejected,
-    SUM(CASE WHEN status = 'investigation' THEN 1 ELSE 0 END) as investigation,
-    SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END) as closed
-FROM complaints WHERE user_id = ?");
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-$stats = $stmt->get_result()->fetch_assoc();
-$stmt->close();
+// Get filter
+$status_filter = sanitizeInput($_GET['status'] ?? '');
 
-// Get recent complaints
-$stmt = $conn->prepare("SELECT c.*, 
-    (SELECT COUNT(*) FROM evidence WHERE complaint_id = c.id) as evidence_count
-FROM complaints c 
-WHERE c.user_id = ? 
-ORDER BY c.created_at DESC LIMIT 5");
-$stmt->bind_param("i", $user_id);
+// Build query
+$query = "SELECT c.*, 
+    (SELECT COUNT(*) FROM evidence WHERE complaint_id = c.id) as evidence_count,
+    u.name as officer_name
+FROM complaints c
+LEFT JOIN users u ON c.assigned_officer_id = u.id
+WHERE c.user_id = ?";
+
+$params = [$user_id];
+$types = "i";
+
+if (!empty($status_filter)) {
+    $query .= " AND c.status = ?";
+    $params[] = $status_filter;
+    $types .= "s";
+}
+
+$query .= " ORDER BY c.created_at DESC";
+
+$stmt = $conn->prepare($query);
+$stmt->bind_param($types, ...$params);
 $stmt->execute();
-$recent_complaints = $stmt->get_result();
+$complaints = $stmt->get_result();
 $stmt->close();
 ?>
 <!DOCTYPE html>
@@ -48,7 +48,7 @@ $stmt->close();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Citizen Dashboard - <?php echo APP_NAME; ?></title>
+    <title>My Complaints - <?php echo APP_NAME; ?></title>
     <link rel="stylesheet" href="<?php echo APP_URL; ?>/assets/css/style.css">
 </head>
 <body>
@@ -62,8 +62,6 @@ $stmt->close();
                         <li><a href="dashboard.php">Dashboard</a></li>
                         <li><a href="submit_complaint.php">Submit Complaint</a></li>
                         <li><a href="my_complaints.php">My Complaints</a></li>
-                        <li><a href="profile.php">Profile</a></li>
-                        <?php renderNotificationBell($conn, $user_id); ?>
                         <li class="user-menu">
                             <span class="user-info"><?php echo escapeHtml($user['name']); ?></span>
                             <a href="../auth/logout.php" class="logout-btn">Logout</a>
@@ -78,64 +76,50 @@ $stmt->close();
     <main>
         <div class="container">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                <h1 style="color: var(--primary-color);">Welcome, <?php echo escapeHtml($user['name']); ?></h1>
+                <h1 style="color: var(--primary-color);">My Complaints</h1>
                 <a href="submit_complaint.php" class="btn btn-primary">+ New Complaint</a>
             </div>
 
-            <!-- Statistics Dashboard -->
-            <div class="dashboard">
-                <div class="card">
-                    <div class="card-header">Total Complaints</div>
-                    <div class="card-value"><?php echo $stats['total_complaints'] ?? 0; ?></div>
-                </div>
-                <div class="card">
-                    <div class="card-header">Submitted</div>
-                    <div class="card-value"><?php echo $stats['submitted'] ?? 0; ?></div>
-                </div>
-                <div class="card">
-                    <div class="card-header">Under Review</div>
-                    <div class="card-value"><?php echo $stats['under_review'] ?? 0; ?></div>
-                </div>
-                <div class="card">
-                    <div class="card-header">Approved</div>
-                    <div class="card-value"><?php echo $stats['approved'] ?? 0; ?></div>
-                </div>
-                <div class="card">
-                    <div class="card-header">Investigation</div>
-                    <div class="card-value"><?php echo $stats['investigation'] ?? 0; ?></div>
-                </div>
-                <div class="card">
-                    <div class="card-header">Closed</div>
-                    <div class="card-value"><?php echo $stats['closed'] ?? 0; ?></div>
-                </div>
+            <!-- Filter -->
+            <div style="background-color: white; padding: 1.5rem; border-radius: var(--border-radius); margin-bottom: 2rem; display: flex; gap: 1rem;">
+                <label for="statusFilter">Filter by Status:</label>
+                <select id="statusFilter" onchange="window.location.href='?status=' + this.value;">
+                    <option value="">All Statuses</option>
+                    <option value="submitted" <?php echo $status_filter === 'submitted' ? 'selected' : ''; ?>>Submitted</option>
+                    <option value="under_review" <?php echo $status_filter === 'under_review' ? 'selected' : ''; ?>>Under Review</option>
+                    <option value="approved" <?php echo $status_filter === 'approved' ? 'selected' : ''; ?>>Approved</option>
+                    <option value="rejected" <?php echo $status_filter === 'rejected' ? 'selected' : ''; ?>>Rejected</option>
+                    <option value="investigation" <?php echo $status_filter === 'investigation' ? 'selected' : ''; ?>>Investigation</option>
+                    <option value="closed" <?php echo $status_filter === 'closed' ? 'selected' : ''; ?>>Closed</option>
+                </select>
             </div>
 
-            <!-- Recent Complaints -->
+            <!-- Complaints List -->
             <div style="background-color: white; padding: 2rem; border-radius: var(--border-radius); box-shadow: var(--box-shadow);">
-                <h2 style="color: var(--primary-color); margin-bottom: 1.5rem;">Recent Complaints</h2>
-                
-                <?php if ($recent_complaints->num_rows > 0): ?>
+                <?php if ($complaints->num_rows > 0): ?>
                     <div class="table-responsive">
                         <table class="table">
                             <thead>
                                 <tr>
-                                    <th>Complaint ID</th>
+                                    <th>ID</th>
                                     <th>Title</th>
                                     <th>Category</th>
                                     <th>Status</th>
                                     <th>Priority</th>
-                                    <th>Date</th>
+                                    <th>Evidence</th>
+                                    <th>Submitted</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php while ($complaint = $recent_complaints->fetch_assoc()): ?>
+                                <?php while ($complaint = $complaints->fetch_assoc()): ?>
                                     <tr>
-                                        <td><?php echo explode('-', $complaint['id'])[0] ?? 'CCS-' . str_pad($complaint['id'], 5, '0', STR_PAD_LEFT); ?></td>
-                                        <td><?php echo escapeHtml(substr($complaint['title'], 0, 30)) . (strlen($complaint['title']) > 30 ? '...' : ''); ?></td>
+                                        <td><strong>CCS-<?php echo str_pad($complaint['id'], 5, '0', STR_PAD_LEFT); ?></strong></td>
+                                        <td><?php echo escapeHtml(substr($complaint['title'], 0, 25)) . (strlen($complaint['title']) > 25 ? '...' : ''); ?></td>
                                         <td><?php echo escapeHtml($complaint['category']); ?></td>
                                         <td><?php echo formatStatus($complaint['status']); ?></td>
                                         <td><?php echo formatPriority($complaint['priority']); ?></td>
+                                        <td><span class="badge badge-info"><?php echo $complaint['evidence_count']; ?> file(s)</span></td>
                                         <td><?php echo formatDate($complaint['created_at']); ?></td>
                                         <td>
                                             <a href="view_complaint.php?id=<?php echo $complaint['id']; ?>" class="btn btn-primary" style="font-size: 0.85rem;">View</a>
@@ -146,7 +130,7 @@ $stmt->close();
                         </table>
                     </div>
                 <?php else: ?>
-                    <p style="color: #999; text-align: center; padding: 2rem;">You haven't submitted any complaints yet.</p>
+                    <p style="color: #999; text-align: center; padding: 2rem;">No complaints found.</p>
                 <?php endif; ?>
             </div>
         </div>

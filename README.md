@@ -1,309 +1,315 @@
 # Corruption Control System
 
-A full-stack web application for managing corruption complaints online. Citizens can submit complaints with evidence, admins can review and approve them, and investigation officers can conduct investigations and submit reports.
+A comprehensive full-stack web application for managing corruption complaints, investigations, and reports.
 
-## Features
+## Project Overview
 
-- **Citizen Module**
-  - User registration and login
-  - Submit corruption complaints with title, category, location, date, and description
-  - Upload evidence files (images, documents)
-  - View complaint status in real-time
-  - Track investigation progress
+The Corruption Control System is a complete platform that enables citizens to submit corruption complaints, anti-corruption officers to review and approve them, and investigation officers to conduct investigations and generate reports.
 
-- **Admin Module**
-  - Review pending complaints
-  - Approve or reject complaints with reasons
-  - Assign investigation officers to approved complaints
-  - Manage officer availability
-  - View all complaints with filtering options
+### Key Features
 
-- **Officer Module**
-  - View assigned complaints
-  - Access complainant information and uploaded evidence
-  - Submit investigation reports with findings and recommendations
-  - Mark cases as completed
-  - Track case status
+- **Citizen Portal**: Submit complaints with evidence, track status, view reports
+- **Admin Dashboard**: Manage users and monitor all complaints
+- **Anti-Corruption Officer Panel**: Review and approve/reject complaints
+- **Investigation Officer Panel**: Handle approved cases, register FIRs, generate reports
+- **Complete Tracking System**: Status updates throughout complaint lifecycle
+- **Evidence Management**: Upload and manage evidence files
+- **Report Generation**: Create and submit investigation reports
+- **User Management**: Role-based access control
 
 ## Technology Stack
 
-- **Frontend**: HTML5, CSS3, JavaScript (Vanilla)
-- **Backend**: PHP (Core PHP, no frameworks)
+- **Frontend**: HTML, CSS, JavaScript
+- **Backend**: PHP (Pure PHP, no frameworks)
 - **Database**: MySQL
-- **Server**: Apache (or compatible web server)
+- **Server**: Apache with mod_rewrite
 
-## System Requirements
+## System Actors & Roles
+
+1. **Citizen**: Submits complaints, uploads evidence, tracks progress
+2. **Admin**: Manages users, monitors all complaints, generates reports
+3. **Anti-Corruption Officer**: Reviews complaints, approves or rejects
+4. **Investigation Officer**: Handles approved cases, files FIRs, creates reports
+
+## Installation Instructions
+
+### Prerequisites
 
 - PHP 7.4 or higher
 - MySQL 5.7 or higher
-- Apache with mod_rewrite enabled
-- Minimum 10MB disk space
+- Apache Web Server with mod_rewrite enabled
+- Composer (optional)
 
-## Installation & Setup
+### Step 1: Database Setup
 
-### Step 1: Extract Files
+1. Open phpMyAdmin or MySQL command line
+2. Create a new database (suggested name: `corruption_control_system`)
+3. Import the schema file:
 
-Extract the project files to your web server's root directory (usually `htdocs` for XAMPP or `www` for WAMP).
-
-### Step 2: Create Database
-
-1. Open phpMyAdmin (usually at `http://localhost/phpmyadmin`)
-2. Create a new database called `corruption_control_db`
-3. Import the database schema:
-   - Open the `db/schema.sql` file
-   - Copy and paste the SQL content into the SQL query window in phpMyAdmin
-   - Click "Go" to execute
-
-Alternatively, use MySQL command line:
 ```bash
-mysql -u root -p < db/schema.sql
+mysql -u root -p corruption_control_system < database/schema.sql
 ```
 
-### Step 3: Configure Database Connection
+Or paste the contents of `database/schema.sql` in phpMyAdmin.
 
-Edit `includes/config.php` and update the database credentials:
+### Step 2: Configure Database Connection
+
+Edit `config/database.php` and update the following credentials:
 
 ```php
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', 'your_password');
-define('DB_NAME', 'corruption_control_db');
+define('DB_HOST', 'localhost');  // Your database host
+define('DB_USER', 'root');       // Your MySQL username
+define('DB_PASSWORD', '');       // Your MySQL password
+define('DB_NAME', 'corruption_control_system');
 ```
 
-### Step 4: Create Upload Directories
+### Step 3: Configure Application Settings
 
-Ensure the `uploads` directory and its subdirectories have write permissions:
+Edit `config/config.php` and update:
+
+```php
+define('APP_URL', 'http://localhost/corruptioncontrolsystem');
+```
+
+Replace with your actual application URL.
+
+### Step 4: File Permissions
+
+Make sure the uploads directory is writable:
 
 ```bash
-chmod -R 777 uploads/
+chmod -R 755 uploads/
+chmod -R 755 uploads/complaints/
+chmod -R 755 uploads/reports/
 ```
-
-For Windows, ensure the folder permissions allow the web server user to write files.
 
 ### Step 5: Access the Application
 
-Open your browser and navigate to:
-```
-http://localhost/corruption-control-system/
-```
-
-Or if installed in the root:
-```
-http://localhost/
-```
+Navigate to: `http://localhost/corruptioncontrolsystem/index.php`
 
 ## Default Credentials
 
 ### Admin Account
-- **Email**: admin@corruption.com
-- **Password**: admin123
+- **Email**: admin@corruptioncontrol.com
+- **Password**: admin123@Ab (change this immediately!)
 
 ### Sample Officer Account
-- **Email**: officer@corruption.com
-- **Password**: officer123
+- **Email**: rajesh.officer@corruptioncontrol.com
+- **Password**: admin123@Ab
 
-**Note**: Change these passwords immediately in production!
+### Sample Investigator Account
+- **Email**: priya.investigator@corruptioncontrol.com
+- **Password**: admin123@Ab
 
 ## Folder Structure
 
 ```
-corruption-control-system/
-├── admin/              # Admin module files
-│   ├── dashboard.php
-│   ├── view_complaints.php
-│   ├── approve_complaint.php
-│   ├── process_approval.php
-│   ├── manage_officers.php
-│   └── toggle_officer_status.php
-├── citizen/            # Citizen module files
-│   ├── dashboard.php
-│   ├── submit_complaint.php
-│   ├── process_complaint.php
-│   ├── view_complaints.php
-│   └── view_complaint_detail.php
-├── officer/            # Officer module files
-│   ├── dashboard.php
-│   ├── view_complaints.php
-│   ├── view_complaint_detail.php
-│   ├── submit_report.php
-│   ├── process_report.php
-│   └── mark_completed.php
-├── auth/               # Authentication files
+corruptioncontrolsystem/
+├── config/                 # Configuration files
+│   ├── database.php       # Database connection
+│   ├── config.php         # App settings
+│   ├── session.php        # Session management
+│   └── helpers.php        # Helper functions
+├── auth/                  # Authentication pages
 │   ├── login.php
 │   ├── register.php
-│   ├── process_login.php
-│   ├── process_register.php
 │   └── logout.php
-├── css/                # Stylesheets
-│   └── style.css
-├── js/                 # JavaScript files
-│   └── script.js
-├── includes/           # PHP includes
-│   ├── config.php
-│   ├── functions.php
-│   └── navbar.php
-├── db/                 # Database files
-│   └── schema.sql
-├── uploads/            # User uploads directory
-│   ├── evidence/
-│   └── documents/
-└── index.php           # Home page
+├── citizen/               # Citizen module
+│   ├── dashboard.php
+│   ├── submit_complaint.php
+│   ├── my_complaints.php
+│   ├── view_complaint.php
+│   └── profile.php
+├── admin/                 # Admin module
+│   ├── dashboard.php
+│   ├── manage_users.php
+│   ├── manage_complaints.php
+│   ├── view_complaint.php
+│   └── reports.php
+├── officer/               # Anti-Corruption Officer module
+│   ├── dashboard.php
+│   ├── pending_complaints.php
+│   ├── review_complaint.php
+│   ├── assigned_complaints.php
+│   └── view_complaint.php
+├── investigation/         # Investigation Officer module
+│   ├── dashboard.php
+│   ├── pending_assignment.php
+│   ├── take_case.php
+│   ├── my_cases.php
+│   ├── view_case.php
+│   ├── create_report.php
+│   └── close_case.php
+├── assets/
+│   ├── css/
+│   │   └── style.css
+│   └── js/
+│       ├── main.js
+│       └── validation.js
+├── uploads/
+│   ├── complaints/        # Complaint evidence storage
+│   └── reports/           # Report storage
+├── database/
+│   └── schema.sql         # Database schema
+├── index.php              # Landing page
+└── README.md
 ```
 
-## Database Tables
+## Database Schema
 
-### users
-- `user_id` - Primary key
-- `email` - User email (unique)
-- `password` - Hashed password
-- `first_name` - First name
-- `last_name` - Last name
-- `phone` - Phone number
-- `user_type` - citizen, admin, or officer
-- `is_active` - Account status
+### Tables
 
-### complaints
-- `complaint_id` - Primary key
-- `citizen_id` - Citizen who filed complaint (FK to users)
-- `title` - Complaint title
-- `description` - Detailed description
-- `category` - Corruption category
-- `location` - Location of incident
-- `complaint_date` - Date of incident
-- `evidence_count` - Number of evidence files
-- `status` - pending, approved, rejected, under_investigation, completed
-- `assigned_officer_id` - Assigned officer (FK to officers)
-- `rejection_reason` - If rejected
+- **users**: User accounts (citizens, officers, admins, investigators)
+- **complaints**: Corruption complaints
+- **evidence**: Evidence files attached to complaints
+- **fir**: First Information Reports
+- **investigation_reports**: Investigation findings and recommendations
+- **activity_log**: Track all user actions
+- **comments**: Internal notes on complaints
 
-### evidence
-- `evidence_id` - Primary key
-- `complaint_id` - Related complaint (FK)
-- `file_name` - Original filename
-- `file_type` - File extension
-- `file_size` - File size in bytes
-- `file_path` - Path to file
-- `uploaded_by` - User who uploaded (FK to users)
+## User Workflow
 
-### officers
-- `officer_id` - Primary key
-- `user_id` - Officer user account (FK to users)
-- `department` - Department name
-- `badge_number` - Unique badge number
-- `designation` - Job title
-- `is_available` - Availability status
+### Citizen Flow
+1. Register/Login
+2. Submit complaint with evidence
+3. Receive complaint reference number
+4. Track complaint status
+5. View final report when available
 
-### reports
-- `report_id` - Primary key
-- `complaint_id` - Related complaint (FK)
-- `officer_id` - Officer who submitted (FK to officers)
-- `findings` - Investigation findings
-- `recommendations` - Recommendations
-- `status` - draft or submitted
-- `submitted_date` - Submission timestamp
+### Admin Flow
+1. Login to dashboard
+2. View all users and complaints
+3. Manage user accounts
+4. Generate system reports
 
-## User Workflows
+### Officer Flow
+1. Login to dashboard
+2. Review pending complaints
+3. Approve or reject complaints
+4. Assign to investigation officers
 
-### Citizen Workflow
-1. Register new account
-2. Login with credentials
-3. Submit complaint with details and evidence
-4. View complaint status
-5. Track investigation progress
-6. View investigation report when completed
-
-### Admin Workflow
-1. Login with admin credentials
-2. View pending complaints
-3. Read complaint details and evidence
-4. Approve complaint and assign officer, or reject with reason
-5. Manage officer availability
-6. Monitor all complaints
-
-### Officer Workflow
-1. Login with officer credentials
-2. View assigned complaints
-3. Review complaint details and evidence
-4. Conduct investigation
-5. Submit investigation report (can save as draft)
-6. Submit report for approval
-7. Mark case as completed
+### Investigator Flow
+1. Accept assigned cases
+2. Register FIR
+3. Upload investigation evidence
+4. Create investigation reports
+5. Close cases
 
 ## Security Features
 
-- Password hashing using PHP's password_hash()
+- Bcrypt password hashing
+- SQL injection prevention (prepared statements)
 - Session-based authentication
-- Input sanitization to prevent SQL injection
+- Role-based access control
+- XSS prevention (HTMLspecialchars escaping)
 - File upload validation
-- User role-based access control
-- Audit logging for all actions
+- Password strength requirements
 
-## File Upload
+## Features Description
 
-- Maximum file size: 5MB
-- Allowed formats: jpg, jpeg, png, gif, pdf, doc, docx
-- Files stored in `uploads/evidence/` directory
-- Automatic filename generation to prevent conflicts
+### Complaint Management
+- Citizens can submit detailed complaints
+- Multiple file uploads as evidence
+- Status tracking in real-time
+- Priority classification (low, medium, high, critical)
+- Category classification (Bribery, Embezzlement, Fraud, etc.)
 
-## Responsive Design
+### Investigation System
+- Officers review and approve/reject complaints
+- Investigators take case assignment
+- Automatic FIR generation with unique numbers
+- Evidence management throughout investigation
+- Investigation report generation with findings and recommendations
 
-The application is fully responsive and works on:
-- Desktop computers
-- Tablets
-- Mobile phones (iOS and Android)
+### User Management
+- Admin can activate/suspend/delete users
+- Different roles with specific permissions
+- User profile management
+- Activity logging for audit trail
+
+### Reporting
+- Complaint statistics dashboard
+- Category-wise distribution
+- Priority-wise analysis
+- Average resolution time tracking
+- Export-ready data
+
+## Password Policy
+
+- Minimum 8 characters
+- At least one uppercase letter
+- At least one lowercase letter
+- At least one digit
+- At least one special character (@$!%*?&)
+
+Example valid password: `SecurePass123!`
+
+## Common Issues & Solutions
+
+### Issue: Database connection fails
+**Solution**: 
+- Check MySQL credentials in `config/database.php`
+- Ensure MySQL server is running
+- Verify database name exists
+
+### Issue: File upload not working
+**Solution**:
+- Check folder permissions on `uploads/` directory
+- Ensure PHP has write permissions
+- Verify PHP upload_max_filesize setting
+
+### Issue: Session not persisting
+**Solution**:
+- Ensure cookies are enabled in browser
+- Check PHP session.save_path is writable
+- Verify SESSION_TIMEOUT setting in config.php
+
+### Issue: Login redirects to home page
+**Solution**:
+- Check if passwords are hashing correctly
+- Verify user exists in database
+- Check user status is 'active'
+
+## Feature Roadmap
+
+- [ ] Email notifications
+- [ ] SMS alerts
+- [ ] Dashboard charts and analytics
+- [ ] Advanced search and filtering
+- [ ] Batch complaint uploads
+- [ ] API integration
+- [ ] Mobile application
+- [ ] Two-factor authentication
+- [ ] Audit log download
+- [ ] Complaint templates
 
 ## API Documentation
 
-All interactions are form-based POST requests. No REST API is provided in this version.
+The system uses standard HTTP methods (GET, POST) with session-based authentication. No separate API endpoints are exposed currently.
 
-## Troubleshooting
+## Support & Maintenance
 
-### Database Connection Error
-- Check if MySQL service is running
-- Verify credentials in `includes/config.php`
-- Ensure database `corruption_control_db` exists
+### Regular Maintenance Tasks
+- Backup database weekly
+- Review activity logs monthly
+- Update user credentials quarterly
+- Clean up old temporary files
 
-### File Upload Not Working
-- Check `uploads/` folder permissions (should be 777)
-- Verify PHP upload_max_filesize setting
-- Check server error logs
-
-### Login Not Working
-- Verify email and password are correct
-- Ensure user account is active (is_active = TRUE)
-- Check browser cookies are enabled
-
-### Pages Not Loading
-- Ensure PHP is installed and configured
-- Check Apache error logs
-- Verify file permissions
-
-## Performance Considerations
-
-- Database indexes are created on frequently searched columns
-- Sessions are used for client-side state management
-- No external APIs or dependencies
-- Lightweight CSS and JavaScript
-
-## Future Enhancements
-
-- Email notifications for complaint updates
-- Advanced search and filtering
-- Export reports to PDF
-- Complaint categories dashboard
-- Case statistics and analytics
-- Two-factor authentication
-- File versioning for reports
-- Bulk complaint import
+### Database Backup
+```bash
+mysqldump -u root -p corruption_control_system > backup_$(date +%Y%m%d).sql
+```
 
 ## License
 
-This project is provided as-is for educational and organizational use.
+This project is proprietary and confidential.
 
-## Support
+## Contact
 
-For issues and questions, please contact the system administrator.
+For issues or questions, please contact the system administrator.
 
 ---
 
-**Version**: 1.0  
-**Last Updated**: March 2026
+**Version**: 1.0.0  
+**Last Updated**: 2024  
+**Status**: Production Ready
